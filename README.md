@@ -15,10 +15,10 @@ pip install -r requirements.txt
 ## Project layout
 
 ```
-data/raw/       raw source books (hobbit.txt, lostworld.txt)
+data/raw/       raw source books, plus the instructor's test set
 data/clean/     cleaned text (Gutenberg boilerplate stripped, lines unwrapped)
 src/            implementation
-outputs/        trained tokenizer, evaluation results
+outputs/        trained tokenizer, evaluation results, final predictions
 notes/          assignment instructions
 ```
 
@@ -37,6 +37,11 @@ Run in order from the project root (with the venv activated):
    trigram models (90% train / 10% held-out split per book), sweeps add-k
    smoothing values, and evaluates per-passage classification accuracy.
    Results in `outputs/author_model_evaluation.csv`.
+4. `python src/predict_test_set.py` — classifies the instructor's test set.
+   Retrains both author models on the *full* cleaned text (no holdout, since
+   the test set is now the unseen data), reads `data/raw/HW2-F26-testset.txt`,
+   and writes `outputs/predictions.txt`. Verification checks print to the
+   terminal; the output file contains nothing but the labels.
 
 ## Key implementation notes
 
@@ -50,10 +55,22 @@ Run in order from the project root (with the venv activated):
   trigram per the assignment's language-modeling requirement.
 - Perplexity follows the assignment's own definition exactly: per-word
   average negative log probability, not the exponentiated textbook formula.
+- `src/predict_test_set.py` adds no modelling code of its own — it reuses
+  `BPETokenizer`, `NGramModel` and `prepare_sequences`. The test file is
+  parsed by detecting `ITEM-XX` markers rather than assuming one item per
+  line, so passages wrapped across several lines are handled correctly.
 
-## Current best configuration
+## Final configuration
 
 Bigram model, k=0.1 (add-k smoothing) — selected based on held-out
 per-passage classification accuracy (~91% overall). See
 `outputs/author_model_evaluation.csv` for the full comparison across
 bigram/trigram and k in {0.001, 0.01, 0.1, 1.0, 10.0}.
+
+## Test-set results
+
+`outputs/predictions.txt` holds one `ITEM-XX<TAB>Author` line per test
+passage, in the same order as the input file — 48 lines total, 25 Tolkien
+and 23 Doyle. Each passage is split into sentences, encoded with `<s>` /
+`</s>` boundaries, and scored under both authors' models; whichever model
+gives the lower perplexity supplies the label.
