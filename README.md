@@ -19,7 +19,6 @@ data/raw/       raw source books, plus the instructor's test set
 data/clean/     cleaned text (Gutenberg boilerplate stripped, lines unwrapped)
 src/            implementation
 outputs/        trained tokenizer, evaluation results, final predictions
-notes/          assignment instructions
 ```
 
 ## Pipeline
